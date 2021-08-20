@@ -8,6 +8,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,6 +39,15 @@ public class ClientTest {
                 }
             });
 
+    public static final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r, "scheduledThread_");
+            thread.setDaemon(false);
+            return thread;
+        }
+    });
+
     public static void main(String[] args) {
 
         Bootstrap bootstrap = new Bootstrap()
@@ -59,15 +70,20 @@ public class ClientTest {
 
         InetSocketAddress inetSocketAddress = new InetSocketAddress("127.0.0.1", 9090);
 
-        ChannelFuture channelFuture = bootstrap.connect(inetSocketAddress);
+        final ChannelFuture channelFuture = bootstrap.connect(inetSocketAddress);
 
         if (channelFuture.awaitUninterruptibly(2, TimeUnit.MINUTES)) {
-            Channel channel = channelFuture.channel();
-            String request = "客户端发起了心跳请求";
-            RemotingCommand command= new RemotingCommand();
-            command.setBody(request.getBytes());
-            command.setCode(1);
-            channel.writeAndFlush(command);
+            scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+                    Channel channel = channelFuture.channel();
+                    String request = "客户端发起了心跳请求";
+                    RemotingCommand command= new RemotingCommand();
+                    command.setBody(request.getBytes());
+                    command.setCode(1);
+                    channel.writeAndFlush(command);
+                }
+            }, 1000, 30 * 1000, TimeUnit.MILLISECONDS);
         }
     }
 
