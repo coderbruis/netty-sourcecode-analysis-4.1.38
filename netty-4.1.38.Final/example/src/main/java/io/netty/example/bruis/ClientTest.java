@@ -73,18 +73,22 @@ public class ClientTest {
         final ChannelFuture channelFuture = bootstrap.connect(inetSocketAddress);
 
         if (channelFuture.awaitUninterruptibly(2, TimeUnit.MINUTES)) {
+//            heartBeat(channelFuture.channel());
             scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {
-                    Channel channel = channelFuture.channel();
-                    String request = "客户端发起了心跳请求";
-                    RemotingCommand command= new RemotingCommand();
-                    command.setBody(request.getBytes());
-                    command.setCode(1);
-                    channel.writeAndFlush(command);
+                    heartBeat(channelFuture.channel());
                 }
             }, 1000, 30 * 1000, TimeUnit.MILLISECONDS);
         }
+    }
+
+    public static void heartBeat(Channel channel) {
+        String request = "客户端发起了心跳请求";
+        RemotingCommand command= new RemotingCommand();
+        command.setBody(request.getBytes());
+        command.setCode(1);
+        channel.writeAndFlush(command);
     }
 
     public static class ConnectResponseHandler extends SimpleChannelInboundHandler<RemotingCommand> {
