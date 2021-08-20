@@ -25,7 +25,7 @@ public class NettyDecoder extends LengthFieldBasedFrameDecoder {
             if (null == frame) {
                 return null;
             }
-            ByteBuffer byteBuffer = in.nioBuffer();
+            ByteBuffer byteBuffer = frame.nioBuffer();
             return RemotingCommand.decode(byteBuffer);
         } catch (Exception e) {
             e.printStackTrace();

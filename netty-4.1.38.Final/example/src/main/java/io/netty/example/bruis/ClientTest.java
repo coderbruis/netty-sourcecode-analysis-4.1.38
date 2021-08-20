@@ -1,17 +1,13 @@
 package io.netty.example.bruis;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,16 +63,11 @@ public class ClientTest {
 
         if (channelFuture.awaitUninterruptibly(2, TimeUnit.MINUTES)) {
             Channel channel = channelFuture.channel();
-            String request = "bcdccccccccccccccc";
-            RemotingCommand remotingCommand = new RemotingCommand();
-            remotingCommand.setBody(request.getBytes());
-            remotingCommand.setCode(404);
-            channel.writeAndFlush(remotingCommand).addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    System.out.println(future.isDone());
-                }
-            });
+            String request = "客户端发起了心跳请求";
+            RemotingCommand command= new RemotingCommand();
+            command.setBody(request.getBytes());
+            command.setCode(1);
+            channel.writeAndFlush(command);
         }
     }
 

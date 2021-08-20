@@ -7,6 +7,8 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author lhy
  * @date 2021/8/19
@@ -15,9 +17,15 @@ import io.netty.handler.codec.MessageToByteEncoder;
 public class NettyEncoder extends MessageToByteEncoder<RemotingCommand> {
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, RemotingCommand msg, ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, RemotingCommand remotingCommand, ByteBuf out) throws Exception {
         try {
-            out.writeBytes(msg.getBody());
+            ByteBuffer header = remotingCommand.encodeHeader();
+            out.writeBytes(header);
+            byte[] body = remotingCommand.getBody();
+            if (null != body) {
+                out.writeBytes(body);
+            }
+//            out.writeBytes(remotingCommand.getBody());
         } catch (Exception e) {
             e.printStackTrace();
             ctx.channel().close().addListener(new ChannelFutureListener() {
